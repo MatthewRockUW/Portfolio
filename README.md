@@ -5,6 +5,9 @@ This is a selection of data science-related projects I am particularly proud of.
 ## University of Wisconsin Masters of Data Science
 I am currently taking one class a semester, scheduled to complete the course in May of 2023. Here's some highlights of my work.
 
+### [DS705 Final Project - Loan Classification](https://github.com/MatthewRockUW/Portfolio/tree/master/DS705/Project)
+The stats final project involved using regression algorithems and data cleansing to identify if a loan would succeed or fail. I'm proud of the details I wove into the executive narritive and the technical writing, like highlighting the credit card question simplifying the loan process and the 2008 financial crash. 
+
 ### [DS710 Final Project - NFL Tweets](https://github.com/MatthewRockUW/Portfolio/tree/master/DS710)
 I used Twitter's API to look up NFL teams hashtag usage during games. I didn't have great control of R's graphing yet, so I punted on displaying tweet usage by minute. 
 
