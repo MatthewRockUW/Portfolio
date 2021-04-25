@@ -1,0 +1,46 @@
+
+
+def simanneal_caps(init_state, dist_mat, max_no_improve, init_temp, alpha): ###
+
+    curr_state = init_state
+    curr_obj = tour_distance(curr_state, dist_mat)
+    best_state = curr_state  ###
+    best_obj = curr_obj  ###
+
+    # stop search if no better state is found within max_no_improve iterations
+    num_moves_no_improve = 0
+    iterations = 0
+    temp = init_temp
+
+    # save history for plotting after optimization
+    history = np.array([[iterations, curr_obj, best_obj]])  ###
+
+    while (num_moves_no_improve < max_no_improve):
+        num_moves_no_improve += 1
+        iterations += 1  # just for tracking
+        new_state = sub_tour_reversal(curr_state) # make a move
+        new_obj = tour_distance(new_state, dist_mat)
+        delta = curr_obj - new_obj ###
+        prob = np.exp(min(delta, 0) / temp) ### # compute prob accept uphill move
+
+        if new_obj < curr_obj or np.random.uniform() < prob : ### # accept if decrease or rand < prob
+            curr_state = new_state
+            curr_obj = new_obj
+            if curr_obj < best_obj: ### # keep track of best ever
+                best_state = curr_state ###
+                best_obj = curr_obj ###
+                num_moves_no_improve = 0 ###
+
+        temp *= alpha ###
+
+        history = np.vstack( (history, np.array([[iterations,curr_obj,best_obj]]) ) ) ###
+
+    return best_state, best_obj, iterations, history
+
+# apply the simanneal_tsp() function to our seven city problem
+num_cities = len(distance_matrix)
+init_tour = np.random.permutation(np.arange(num_cities))
+
+best_tour, best_dist, iterations, history = simanneal_caps(init_tour, distance_matrix, 1000, 170, .995)
+best_dist
+plot_tour(best_tour, xy, best_dist, 9, 6)

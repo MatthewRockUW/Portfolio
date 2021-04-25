@@ -1,0 +1,18 @@
+1) 
+Colder days were more common.
+
+2) Iowa City was colder. 
+Fall 	-2.7971189309517968
+Spring 	-5.446071101789066
+Summer 	-3.3949779201476247
+Winter 	-2.178551911619671
+
+3)
+2012-06-30 to 2012-07-06
+
+4)
+Most common coldest temperature in the day is 11 PM.
+
+5)
+Iowa City, Dec 14th, 2008, 4 hours 13 minutes.
+

@@ -1,0 +1,13 @@
+1:Might(4,6,7) Probably(11)	
+10:Might(2,5,8,9)	
+11:Might(4,6) Probably(1)	
+12:Might(3,4)	
+13:	
+2:Might(5,8,10) Probably(9)	
+3:Might(4,5,6,7,8,12)	
+4:Might(1,3,6,11,12)	
+5:Might(2,3,8,10) Probably(9)	
+6:Might(1,3,4,7,11)	
+7:Might(1,3,6)	
+8:Might(2,3,5,9,10)	
+9:Might(8,10) Probably(2,5)	

@@ -1,0 +1,361 @@
+---
+title: "Loan Analysis"
+author: "Matt Rock"
+date: "3/8/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Section 1: Executive Summary
+
+
+## Section 2: Introduction
+In the aftermath of the 2008 recession, the question everyone asked the banking industry was "How did you miss this financial collapse? You had all the information, but ignored it." The pressure to create more mortgage-backed tranches meant housing lenders were actually competing to lend to individuals with riskier credit, leading to a recession that still continues to have repercussions. 
+
+Now, with the spectre of financial ruin still lingering, banks need to protect themselves from bad risks of all kinds. The purpose of this project is to assist banks in being able to protect their investment portfolio with safe investments, while still creating a satisfying application experience for the loan officer and loan seeker..
+
+
+```{r prep, echo=FALSE, message=FALSE}
+oldw <- getOption("warn")
+options(warn = -1)
+
+loans = read.csv(file="C:/Users/Matt Rock/Documents/Data Science/DS 705/Project/loans50k.csv")
+library(dplyr)
+library(caret)
+library(ggplot2)
+library(gridExtra)
+library(GGally)
+library(scales)
+library(knitr)
+library(formattable)
+options(warn = oldw)
+
+```
+
+## Section 3: Preparing and Cleaning the Data
+
+The initial data set had 50,000 observations and 32 variables. Selecting only on the relevant loan status left 34,655 data points. The initial variable trimming removed loanID (randomized number), employment (covered by job length and salary), and state (with 50 states, random chance would lead to false positives). The interest rate of the loan, and therefore the loan payment, comes from the loan officer, so neither would be useful to help the bank project if a loan will fail.
+
+```{r cleanup, echo=FALSE, message=FALSE}
+
+loans$loanID <- NULL #Unique identifier, randomly chosen.
+loans$employment <- NULL #21401 unique identifiers - can't work with that data.
+loans$state <- NULL #50 states, would not expect to be useful
+loans$rate <- NULL
+loans$payment <- NULL
+
+loans <- loans[loans$status %in% c('Charged Off','Fully Paid','Default'), ] #Reducing data to relevant sets
+loans <- loans %>% mutate(result = case_when(status == 'Fully Paid' ~ 'Good', TRUE ~ 'Bad') )
+loans$result <- as.factor(loans$result)
+loans$status <- NULL
+loans<- loans[complete.cases(loans), ]
+
+#Removing the null factors caused from loanID 656728
+loans$grade <- droplevels(loans$grade)
+loans$length <- droplevels(loans$length)
+loans$home <- droplevels(loans$home)
+loans$verified <- droplevels(loans$verified)
+loans$term <-droplevels(loans$term)
+loans$reason <- droplevels(loans$reason)
+
+```
+
+Finally, many of the variables were very similar. Total accounts is removed, as open accounts would work just as well. Likewise, credit card limits and installment limits fell under total limits. Total balance shows financial problems more than average balance. Finally, the ratio of used credit to total credit and total open credit are heavily correlated with the total credit used and total credit limits. 
+
+```{r accounts, echo=FALSE, message=FALSE}
+
+loans$totalAcc <- NULL
+loans$totalBcLim <- NULL
+loans$totalIlLim <- NULL
+loans$avgBal <- NULL
+loans$bcOpen <- NULL
+loans$bcRatio <- NULL
+
+```
+## Section 4: Exploring the Data
+
+The grade of the loan is the biggest indicator of its success. However, since the loan grade is the result of the loan process, rather than information around the application, it doesn't make sense to use it as part of a model predicting if a loan is successful. Where the grade will be useful is benchmarking what variables indicate a good or bad loan. 
+
+```{r grades, echo=FALSE, message=FALSE}
+
+ggplot(loans, aes(x = grade, fill=result)) + geom_bar(position="fill") + ggtitle("Ratio of Bad to Good Loans By Grade")
+
+
+```
+
+Loans to people with a mortgage were more successful than those to renters. About one out of every five loans given to someone with a mortgage failed, compared to renters failing with one of four loans. This was heavily influenced by the grade of the loan
+
+```{r home, echo=FALSE, message=FALSE}
+
+p1 <- ggplot(loans[loans$result=='Good', ], aes(x = grade, fill=home)) + geom_bar(position="dodge") + ggtitle("Good Loans by Grade and Verification")
+
+p2 <- ggplot(loans[loans$result=='Bad', ], aes(x = grade, fill=home)) + geom_bar(position="dodge") + ggtitle("Bad Loans by Grade and Verification")
+
+p3 <- ggplot(loans[loans$result=='Good', ], aes(x = grade, fill=home)) + geom_bar(position="fill") + ggtitle("Good Loans by Grade and Verification")
+
+p4 <- ggplot(loans[loans$result=='Bad', ], aes(x = grade, fill=home)) + geom_bar(position="fill") + ggtitle("Bad Loans by Grade and Verification")
+
+grid.arrange(p1, p2, nrow=2)
+#grid.arrange(p3, p4, nrow=2)
+
+```
+
+Similarly, the length of the loan was a very strong indicator of success or failure. Around one of six loans with a 3 year term failed, but over a third of 5 year loans failed. 
+
+```{r length, echo=FALSE, message=FALSE}
+
+ggplot(loans, aes(x = term, fill=result)) + geom_bar(position="dodge") + ggtitle("Loans by Length and Result")
+
+```
+
+Some variables involved loan approvals more than loan results, and were removed. The majority of loans were given to people with no late payments in the last 2 years, but a loan was more likely to default if it was issued to someone without a late payment than with. Length of employment, public record hits, and 6 month inquiries also had no real clear bearing on loan quality. 
+
+```{r delinq, echo=FALSE, message=FALSE}
+
+loans <- loans %>% mutate(delinq2yr = case_when(delinq2yr == '0' ~ 'None', TRUE ~ 'OneOrMore') )
+
+pp0 <- ggplot(loans, aes(x = delinq2yr, fill=result)) + geom_bar(position="stack") + ggtitle("Number Of Loan Results That Had a Prior Deliquincy")
+
+pp1 <- ggplot(loans, aes(x = length, fill=result)) + geom_bar(position="fill") + ggtitle("% Of Loan Results By Employment Length")+ coord_flip()
+
+pp2 <- ggplot(loans, aes(x = inq6mth, fill=result)) + geom_bar(position="fill") + ggtitle("Loan Results By Credit Check #")
+
+pp3 <- ggplot(loans, aes(x = pubRec, fill=result)) + geom_bar(position="dodge") + ggtitle("Loan Results By Public Record Inquiries")
+
+loans$delinq2yr <- NULL
+loans$length <- NULL
+loans$pubRec <- NULL
+loans$inq6mth <- NULL
+
+pp0
+pp1
+pp2 
+pp3
+
+```
+
+Looking at the reasons for loans, credit card not only had enough data points to be useful, it also was strongly associated with higher grades. I turned the reason into a binary indicator variable - 1 to indicate it was a credit card-associated loan, 0 otherwise. 
+
+```{r rates, echo=FALSE, message=FALSE}
+
+pp4 <- ggplot(loans, aes(x = reason, fill=grade)) + geom_bar(position="stack") + ggtitle("Loan Results By Reason") + coord_flip()
+
+pp5 <- ggplot(loans, aes(x = reason, fill=grade)) + geom_bar(position="fill") + ggtitle("Loan Results By Reason") + coord_flip()
+
+
+grid.arrange(pp4, pp5, nrow=2)
+
+
+loans <- loans %>% mutate(creditcard = case_when(reason == 'credit_card' ~ 1, TRUE ~ 0) )
+loans$reason <- NULL
+
+```
+
+The variables that involved total income, debt or credit levels were heavily skewed. Logarithmically transforming those variables helped reduce skewness. There were still a few outliers, but the transformation helped normalize the data significantly. 
+
+Loan amounts were not altered, as they did not span nearly the same range as the transformed variables.
+
+```{r densityplots, echo=FALSE}
+
+ggplot(loans, aes(x=result, y=income), group=result) + geom_violin() + ggtitle("Income Displayed Linearlly")
+ggplot(loans, aes(x=result, y=log(income)), group=result) + geom_violin() + ggtitle("Income Displayed Logarithmically")
+
+ggplot(loans, aes(x=result, y=amount), group=result) + geom_violin() + ggtitle("Loan Amount Displayed Linearlly")
+ggplot(loans, aes(x=result, y=log(amount)), group=result) + geom_violin() + ggtitle("Loan Amount Displayed Logarithmically")
+
+
+#Adding a dollar to all transformations to avoid log(0).
+loans$income <- log(loans$income+1) 
+loans$totalBal <- log(loans$totalBal+1)
+loans$totalRevLim <- log(loans$totalRevLim+1)
+loans$totalLim <- log(loans$totalLim+1)
+loans$totalRevBal <- log(loans$totalRevBal+1)
+
+```
+
+
+
+## Section 5: Building The Model
+The data was split into two sets. 80% of the loans were used to build the models, and the grade variable was dropped from them. The remaining 20% would be held to verify the model's accuracy. 
+
+```{r modelprep, echo=FALSE, message=FALSE}
+
+loans$profit <- loans$totalPaid - loans$amount
+loans$totalPaid <- NULL
+loans$grade <- NULL
+loans.modelbuilding <- loans[1:(nrow(loans)*.8),]
+
+loans.testing <-loans[(1+nrow(loans)*.8):nrow(loans), ]
+
+```
+
+The initial pass of using only first-order variables to build the model looks like the current selection was very good. Only open accounts had a p-value above .1, and was removed. 
+
+```{r backwardsmodel, echo=FALSE, message=FALSE}
+options(warn = -1)
+loans.null.model <- glm(result~1, data=loans.modelbuilding, family = "binomial")
+loans.full.model <- glm(result~., data=loans.modelbuilding, family = "binomial")
+# loans.backward <- step(loans.full.model,  direction="backward")
+
+loans.initial.model <- glm(result ~amount + term + home + income + verified + 
+    debtIncRat + revolRatio + totalBal + totalRevLim + 
+    accOpen24 + totalLim + totalRevBal + creditcard, data=loans.modelbuilding, family = "binomial")
+
+options(warn=oldw)
+
+```
+
+``` {r secondordersmodel, echo=FALSE, message=FALSE}
+
+#loans.forward <- step(loans.second.model, scope = . ~ .^2, direction="forward")
+
+loans.second.model <-glm(result ~ term + home + income + verified + 
+    debtIncRat + revolRatio + totalBal + totalRevLim + accOpen24 + 
+    totalLim + totalRevBal + creditcard + amount:term  + 
+    term:totalBal + verified:accOpen24 + 
+    totalRevBal:creditcard + 
+    revolRatio:totalRevBal, data=loans.modelbuilding, family = "binomial")
+
+#loans.backward.second.model <- step(loans.second.model,  direction="backward")
+
+#summary(loans.initial.model)
+#summary(loans.second.model)
+
+```
+
+A model using higher-order variables was considered, but it ended up with a slightly worse success rate as the first-order model. More complicated and worse made it easy to discard.
+
+``` {r verification, echo=FALSE, message=FALSE}
+
+modelverification <- function(model, dataset, probability) {
+  probabilities=predict(model,type="response")
+  estimatedResponses = ifelse(probabilities >= probability, TRUE, FALSE)
+  trueResponses = ifelse(dataset$result == "Good", TRUE, FALSE)
+  conmatrix <- data.frame(estimatedResponses, trueResponses)
+  return(conmatrix)
+}
+
+modelsuccess <- function(amatrix) {
+  temptable = table(amatrix)
+  (temptable[1,1] + temptable[2,2]) / nrow(amatrix)
+}
+
+ini = modelverification(loans.initial.model,loans.modelbuilding, .5)
+second = modelverification(loans.second.model,loans.modelbuilding, .5)
+
+print("First-order model")
+table(ini)
+modelsuccess(ini)
+print("Higher order model")
+table(second)
+modelsuccess(second)
+
+```
+
+Now to use the testing dataset to see how we did. 
+
+``` {r verifying, echo=FALSE, message=FALSE}
+
+loans.testing.model <- glm(result ~amount + term + home + income + verified + 
+    debtIncRat + revolRatio + totalBal + totalRevLim + 
+    accOpen24 + totalLim + totalRevBal + creditcard, data=loans.testing, family = "binomial")
+
+testingmodel = modelverification(loans.testing.model,loans.testing, .5)
+
+table(testingmodel)
+
+
+```
+
+We have a success rate in this data set very close to the training set. Let's take it one step further. How can we see if our roughly `r round(modelsuccess(testingmodel),3)*100`% success rate at identifying if a loan will succeed or not is actually worthwhile? Compare the model to the bank's success rate of `r round(nrow(loans[loans$result=="Good",])/nrow(loans),3)*100`%, we're slightly ahead of them. Let's see if we can improve.
+
+## Section 6: Optimizing the Threshold for Accuracy
+
+What's the optimal threshold? Let's try other thresholds to see if we can get more accurate results.
+
+``` {r accuracythreshold, echo=FALSE, message=FALSE}
+
+percents = seq(from = .25, to = .95, by = .005)
+
+changeprobability <- function(percent) {
+  modelsuccess(modelverification(loans.testing.model,loans.testing,percent))
+}
+
+myresults <- sapply(percents, changeprobability)
+
+probabilityresults <- data.frame(percents, myresults)
+
+ggplot(probabilityresults, aes(x = percents, y=myresults)) + geom_point() + ggtitle("Threshold Success Rates") + xlab("Threshold Cutoff Rate") +ylab("Loan Prediction Rate")
+
+```
+
+Instead of using .5, the maximum accuracy of `r round(probabilityresults[myresults==max(probabilityresults$myresults),2], 3)*100`% results from using a threshold of `r probabilityresults[myresults==max(probabilityresults$myresults),1] `. There wasn't much difference in prediction quality until around the .65 threshold, when it began to decline slowly, then rapidly. While "being right" is a great reason to build a model, "making money" is another one. How does changing the threshold alter how much money the bank makes?
+
+## Section 7: Optimizing the Threshold for Profit
+
+Using the same general idea as maximizing accuracy, but instead of pass/fail I'll focus on how profitable the loan ends up being. We know that the bank profit of loans that are either fully paid or written off is `r currency(sum(loans.testing$profit), digits=0L)`. If our model was perfect, the maximum possible profit in our sample data is `r currency(sum(loans.testing$profit[loans.testing$result=="Good"]), digits=0L)`.  What's the best the model can do?
+
+```{r nextpart, echo=FALSE, message=FALSE}
+
+maximizeprofit <- function(percent) {
+  probabilities=predict(loans.testing.model,type="response")
+  estimatedResponses = ifelse(probabilities >= percent, TRUE, FALSE)
+  sum(loans.testing$profit[estimatedResponses==TRUE])
+}
+
+Results <- sapply(percents, maximizeprofit)
+
+profitprobability <- data.frame(percents, Results)
+
+ggplot(profitprobability, aes(x = percents, y=Results)) + geom_point() + ggtitle("Profitability By Threshold") + scale_y_continuous(labels = dollar) + xlab("Threshold Cutoff Rate") + ylab("Financial Impact of Portfolio")
+
+```
+
+Here, the graph peak is at the threshold of `r profitprobability[myresults==max(profitprobability$myresults),1]`, with a profit of `r currency(profitprobability[myresults==max(profitprobability$myresults),2], digits=0L)`. Interestingly, peak profitability comes with the model's threshold set at a point where it loses accuracy. We can see why if we break the loans into chunks based on the value the model assigned to each one.
+
+``` {r exploringprofit, echo=FALSE, message=FALSE, results = 'asis'}
+
+probabilities=predict(loans.testing.model,type="response")
+from <- c(0, .425, .65, .735, .8)
+to <- c(.425, .65, .735, .80, 1)
+profits <- c(
+sum(loans.testing$profit[between(probabilities, 0, .425)]),
+sum(loans.testing$profit[between(probabilities, .42500001, .65)]),
+sum(loans.testing$profit[between(probabilities, .6500001, .735)]),
+sum(loans.testing$profit[between(probabilities, .7350001, .80)]),
+sum(loans.testing$profit[between(probabilities, .8000001, 1)]))
+loancount <- c(
+length(loans.testing$profit[between(probabilities, 0, .425)]),
+length(loans.testing$profit[between(probabilities, .42500001, .65)]),
+length(loans.testing$profit[between(probabilities, .6500001, .735)]),
+length(loans.testing$profit[between(probabilities, .7350001, .80)]),
+length(loans.testing$profit[between(probabilities, .8000001, 1)]))
+
+profitmargins <- data.frame(from,to,loancount, profits)
+kable(profitmargins, caption = "Effect of Threshold Changes on Profits")
+
+```
+The poorly ranked loans didn't just fail, they exploded. The loans rated between .425, our most accurate setting, and .650 included `r length(loans.testing$profit[between(probabilities, .42500001, .65)]) ` loans that cost the bank `r currency(sum(loans.testing$profit[between(probabilities, .42500001, .65)]),digits=0L) `. While there must be some successful loans the model is rejecting, by sticking to the highest-ranked loans we can significantly increase profitability. 
+``` {r endofseven}
+
+```
+## Section 8: Results Summary
+
+I had three goals for creating a method to improve the performance of personal loans: speed, accuracy, and profitability. How did each turn out?
+
+#### Speed
+The amount of information needed to complete a loan application shrunk dramatically. Gone are questions about occupation, or public record queries. Loan officers can do more and better work, and loan seekers feel less stress around a stressful situation. 
+
+#### Accuracy
+While it's possible to use the model to predict loan success at a higher rate than a bank, it's not prudent. The recommended threshold of `r currency(profitprobability[myresults==max(profitprobability$myresults),2],digits=0L) ` performs under the bank's success rate of 'r round(nrow(loans[loans$result=="Good",])/nrow(loans),3)*100'%, but with good reason.
+``` {r accuracy}
+
+
+```
+#### Profit
+That reason is being accurate is a `r currency(sum(loans.testing$profit[between(probabilities, .42500001, .65)]),digits=0L)` drain on the balance sheet. For any two fully paid loans that returns a slight profit, those proceeds are eaten up by one loan that went so sour it's a drain on the financial books. 
+
+
