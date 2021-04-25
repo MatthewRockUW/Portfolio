@@ -4,10 +4,12 @@ This is a selection of data science-related projects I am particularly proud of.
 
 ##Bucky's 5th Quarter Writing
 I write data-driven stories about college athletics, focusing on the University of Wisconsin. Here are some highlights. 
+
+
 [Nemesis!](https://www.sbnation.com/e/20726511)
 My favorite B5Q article. I create a brand new statistic to talk about college football through the eyes of Wisconsin running backs stomping over their conference foes. 
-I had other (articles about Taylor)[https://www.buckys5thquarter.com/2019/9/12/20860105/wisconsin-badgers-football-jonathan-taylor-is-very-good-at-football-records-ron-dayne-melvin-gordon], (including a love letter to Madison)[https://www.sbnation.com/e/20814921],  but this is the one I have on my LinkedIn page.
 
+I had other [articles about Taylor](https://www.buckys5thquarter.com/2019/9/12/20860105/wisconsin-badgers-football-jonathan-taylor-is-very-good-at-football-records-ron-dayne-melvin-gordon), [including a love letter to Madison](https://www.sbnation.com/e/20814921),  but this is the one I have on my LinkedIn page.
 
 [The 1970’s Big 10 Wikipedia Entries Were Mostly Written By A Michigan Man](https://www.sbnation.com/e/21110152)
 Data science involves cleansing and formatting existing data into something you can more easily manage. I noticed that Michigan was talked about a lot in the Big 10's wiki pages, and met Cbl22.
