@@ -5,8 +5,14 @@ This is a selection of data science-related projects I am particularly proud of.
 ## University of Wisconsin Masters of Data Science
 I am currently taking one class a semester, scheduled to complete the course in May of 2023. Here's some highlights of my work.
 
-### [DS710 Final Project - NFL Tweets](https://github.com/MatthewRockUW/ds710fall2019finalproject)
+### [DS710 Final Project - NFL Tweets](https://github.com/MatthewRockUW/Portfolio/tree/master/DS705/Project)
 I used Twitter's API to look up NFL teams hashtag usage during games. I didn't have great control of R's graphing yet, so I punted on displaying tweet usage by minute. 
+
+### [DS730 Map-Reducer](https://github.com/MatthewRockUW/Portfolio/tree/master/DS730/Project1)
+A simple map-reducer project. I ended up helping out others that couldn't quite get the hang that one line of input could generate multiple lines of output for the 3rd section. 
+
+### [DS730 Final](https://github.com/MatthewRockUW/Portfolio/tree/master/DS730/FinalProject)
+A mish-mash of map reducing, Hive code, and college football win streaks. 
 
 ## Bucky's 5th Quarter Writing
 I write data-driven stories about college athletics, focusing on the University of Wisconsin. Here are some highlights. 
