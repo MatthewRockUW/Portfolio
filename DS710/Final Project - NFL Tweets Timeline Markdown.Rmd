@@ -1,0 +1,143 @@
+---
+title: "Final Project - NFL Tweets"
+author: "Matt Rock"
+date: "12/9/2019"
+output: pdf_document
+---
+The tweets collected will be used to see if there is a similar proportion of tweets supporting the Packers, Giants, or people just acknowledging the existince of this particular football game as there is retweets of each kind. We'll categorize each tweet, then use a chi-squared omega test to compare proportions of the tweets and retweets of each kind. 
+
+```{r setup, include=FALSE}
+library(dplyr) 
+library(sqldf)
+library(ggformula)
+library(anytime)
+library(scales)
+library(lubridate)
+
+options(scipen = 999) #It shouldn't affect me but when checking out the entries I needed to disable scientific notation. For mental health. 
+
+```
+
+## NFL Tweets During Gametime
+
+```{r Loading and cleaning tweets}
+packersgiantstweets = read.csv("C:/Users/Matt Rock/Documents/GitHub/ds710fall2019finalproject/packersgiantstweets.csv")
+packersgiantsretweets = read.csv("C:/Users/Matt Rock/Documents/GitHub/ds710fall2019finalproject/packersgiantsretweets.csv")
+
+#This is me regretting not grabbing the text for retweets. I'm purposely dropping any retweets of tweets 
+#that happened outside of my timeframe. 
+
+pgretweets = sqldf("select text, original_id, retweet_time, retweeter, retweeter_name
+                   from packersgiantstweets 
+                   join packersgiantsretweets on packersgiantstweets.tweet_id = packersgiantsretweets.original_id")
+
+```
+
+## Text Analysis
+Adding true/false columns for each search term. 
+Using the above booleans to classify each tweet as interested in the Packers (by containing @packers or #GoPackGo), the Giants (@Giants or #GiantsPride) or neutral 
+(either only contains #GBvsNYG or has both a Packer and Giant-supporting mention)
+Then, same analysis for retweets.
+
+```{r Categorizing Tweets}
+
+packersgiantstweets <- packersgiantstweets %>% 
+  mutate(GoPackGo = grepl("#GoPackGo", packersgiantstweets$text, ignore.case = TRUE))
+
+packersgiantstweets <- packersgiantstweets %>% 
+  mutate(Packers = grepl("@Packers", packersgiantstweets$text, ignore.case = TRUE))
+
+packersgiantstweets <- packersgiantstweets %>% 
+  mutate(GBvsNYG = grepl("#GBvsNYG", packersgiantstweets$text, ignore.case = TRUE))
+
+packersgiantstweets <- packersgiantstweets %>% 
+  mutate(GiantsPride = grepl("#GiantsPride", packersgiantstweets$text, ignore.case = TRUE))
+
+packersgiantstweets <- packersgiantstweets %>% 
+  mutate(Giants = grepl("@Giants", packersgiantstweets$text, ignore.case = TRUE))
+
+packersgiantstweets <- packersgiantstweets %>% 
+  mutate(Association = case_when (
+    (Giants | GiantsPride) & !(Packers | GoPackGo) ~ 'GiantsTweets',
+    !(Giants | GiantsPride) & (Packers | GoPackGo) ~ 'PackersTweets',
+    GBvsNYG | ((Giants | GiantsPride) & (Packers | GoPackGo)) ~ 'NeutralTweets',
+    TRUE ~ 'ThisShouldNotExist') #this was extremely helpful in catching my own mistakes
+  )
+
+packersgiantstweets <- packersgiantstweets %>% 
+  mutate(Association = as.factor(Association))
+
+pgretweets <- pgretweets %>% 
+  mutate(GoPackGo = grepl("#GoPackGo", pgretweets$text, ignore.case = TRUE))
+
+pgretweets <- pgretweets %>% 
+  mutate(Packers = grepl("@Packers", pgretweets$text, ignore.case = TRUE))
+
+pgretweets <- pgretweets %>% 
+  mutate(GBvsNYG = grepl("#GBvsNYG", pgretweets$text, ignore.case = TRUE))
+
+pgretweets <- pgretweets %>% 
+  mutate(GiantsPride = grepl("#GiantsPride", pgretweets$text, ignore.case = TRUE))
+
+pgretweets <- pgretweets %>% 
+  mutate(Giants = grepl("@Giants", pgretweets$text, ignore.case = TRUE))
+
+pgretweets <- pgretweets %>% 
+  mutate(Association = case_when (
+    (Giants | GiantsPride) & !(Packers | GoPackGo) ~ 'GiantsRetweets',
+    !(Giants | GiantsPride) & (Packers | GoPackGo) ~ 'PackersRetweets',
+    GBvsNYG | ((Giants | GiantsPride) & (Packers | GoPackGo)) ~ 'NeutralRetweets',
+    TRUE ~ 'ThisShouldNotExist') #this was extremely helpful in catching my own mistakes
+  )
+
+pgretweets <- pgretweets %>% 
+  mutate(Association = as.factor(Association))
+
+```
+# Combining tweets and retweets
+
+```{r combining tweet types}
+
+tweets <- select(pgretweets, text, Association)
+retweets <- select(packersgiantstweets, text, Association)
+
+alltweets = rbind(tweets, retweets)
+
+```
+#Getting the number of each kind of tweet and retweet
+
+```{r table}
+
+table(alltweets$Association)
+
+```
+#Chi-Squared Omega Test
+Proportions of the tweets:
+Giants = .04943
+Neutral = .30856
+Packers = .64219
+
+```{r chi-squared test}
+tweetproportions = c(.04943, .30856, .64201)
+retweetcount = c(1662, 1608, 10787)
+
+chisq.test(retweetcount, p=tweetproportions)
+```
+
+#Creating a chart of number of each kind of tweets during the Packers - Giants game
+I am very happy I got 'dark green' because regular is the hideous neon. 
+
+```{r chart}
+
+colorset = c('GiantsTweets' = 'blue', 'PackersTweets' = 'dark green', 'NeutralTweets' = 'purple',
+             'GiantsRetweets' = 'red', 'PackersRetweets' = 'gold3', 'NeutralRetweets' = 'hotpink') 
+
+gf_bar( ~ Association, data = alltweets, fill =~Association) + scale_fill_manual(values=colorset) + theme(axis.text.x = element_text(angle = 45))
+
+```
+#Exporting samples of the dataframes
+```{r exports}
+
+write.csv(top_n(alltweets, 100), "RData - Combined Tweets-Retweets And Associations.csv")
+write.csv(top_n(pgretweets, 100), "RData - Tweets And Associations.csv")
+write.csv(top_n(packersgiantstweets, 100), "RData - RetweetsR And Associations.csv")

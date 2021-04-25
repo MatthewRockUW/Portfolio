@@ -1,0 +1,6 @@
+#ignore generated files from jupyter.
+#these are temporary files, and should not be committed to a git repo.
+.ipynb_checkpoints
+
+packersgiantsretweets.csv
+packersgiantstweets.csv
