@@ -1,0 +1,1 @@
+Mappper 1 matches with Reducer 1, 2 with 2, and 3 with 3. Three is the most difficult, looking at networks of people to see if they have 3+ people each pair knows, but they don't know each other. The "Results" folder holds the mapper results. 

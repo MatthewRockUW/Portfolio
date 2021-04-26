@@ -6,7 +6,8 @@ This is a selection of data science-related projects I am particularly proud of.
 I am currently taking one class a semester, scheduled to complete the course in May of 2023. Here's some highlights of my work, linking to their Github directory.
 
 ### [DS705 Final Project - Loan Classification](https://github.com/MatthewRockUW/Portfolio/tree/master/DS705/Project)
-The stats final project involved using regression algorithems and data cleansing to identify if a loan would succeed or fail. I'm proud of the details I wove into the executive narritive and the technical writing, like highlighting the credit card question simplifying the loan process and the 2008 financial crash. 
+The stats final project involved using regression algorithems and data cleansing to identify if a loan would succeed or fail. I'm proud of the details I wove into the executive narritive and the technical writing, 
+like highlighting the credit card question simplifying the loan process and referencing the 2008 financial crash. 
 
 ### [DS710 Final Project - NFL Tweets](https://github.com/MatthewRockUW/Portfolio/tree/master/DS710)
 I used Twitter's API to look up NFL teams hashtag usage during games. I didn't have great control of R's graphing yet, so I punted on displaying tweet usage by minute. 
@@ -16,6 +17,9 @@ A simple map-reducer project. I ended up helping out classmates that couldn't qu
 
 ### [DS730 Final](https://github.com/MatthewRockUW/Portfolio/tree/master/DS730/FinalProject)
 A mish-mash of map reducing, Hive code, and college football win streaks. 
+
+### [DS760 Final Paper - Fake Names](https://github.com/MatthewRockUW/Portfolio/blob/master/DS760/Fake%20Names.md)
+A deep dive into online verification of identities. Written in Summer 2020. 
 
 ## Bucky's 5th Quarter Writing
 I write data-driven stories about college athletics, focusing on the University of Wisconsin. Here are some highlights, linking to their posts at B5Q and any Github repository for the spreadsheets & scripts I may have used as source material. 
