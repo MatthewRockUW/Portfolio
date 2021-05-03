@@ -45,4 +45,4 @@ I am paid to write at Bucky's Fifth Quarter.
 
 ## Hobby Projects
 ### [Wellness App](https://github.com/MatthewRockUW/Health) 
-I used to play around with Ruby on Rails, and got a neat little web app that tracked calories, macros, and graded a user based on how they hit their benchmarks, but I upgraded a dependency and broke something. It's from years ago. 
+I used to play around with Ruby on Rails, and got a neat little web app that tracked calories, macros, and graded a user based on how they hit their benchmarks, but I upgraded a dependency and broke something. It's from years ago, but at shows some familiarity with version control. Not enough, if it's still broken.
