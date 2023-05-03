@@ -6,6 +6,7 @@ This is a selection of data science-related projects I am proud of.
 I graduated the course in May 2023. Here's some highlights of my work, linking to their Github directory.
 
 ### [Capstone Project - Operational Room Scheduling by Monte Carlo Simulations](https://github.com/MatthewRockUW/Portfolio/blob/master/Capstone%20Thesis%20-%20Operating%20Room%20Scheduling%20(for%20distro).pdf)
+I explored an alternative way to schedule cases aside from "average case length" that weighed delays versus empty operating room times to schedule cases based on prior cases and how they might perform. 
 
 ### [DS705 Final Project - Loan Classification](https://github.com/MatthewRockUW/Portfolio/tree/master/DS705/Project)
 The stats final project involved using regression algorithems and data cleansing to identify if a loan would succeed or fail. I'm proud of the details I wove into the executive narritive and the technical writing, 
